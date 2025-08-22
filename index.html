@@ -165,29 +165,6 @@
             margin: 0;
             border: 0;
             outline: none;
-            line-height: 1;
-        }
-
-        .carousel-arrow::before {
-            display: block;
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 0;
-        }
-
-        .carousel-arrow.left::before {
-            content: '←';
-        }
-
-        .carousel-arrow.right::before {
-            content: '→';
         }
 
         .carousel-arrow:disabled {
@@ -241,13 +218,13 @@
     <div id="carouselContainer">
         <div class="loading-message" id="loadingMessage">Chargement des données en cours...</div>
         <div class="carousel-wrapper" id="carouselWrapper" style="display: none;">
-            <button class="carousel-arrow left" id="leftArrow" disabled>&#10094;</button>
+            <button class="carousel-arrow left" id="leftArrow" disabled>←</button>
             <div class="carousel-container">
                 <div class="carousel-track" id="carouselTrack">
                     <!-- Les images seront ajoutées dynamiquement ici -->
                 </div>
             </div>
-            <button class="carousel-arrow right" id="rightArrow">&#10095;</button>
+            <button class="carousel-arrow right" id="rightArrow">→</button>
         </div>
         <div id="errorMessage" class="error-message" style="display: none;">
             Aucune donnée valide trouvée dans le Google Sheet.
