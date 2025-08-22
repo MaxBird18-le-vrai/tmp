@@ -2,13 +2,14 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Carrousel avec Google Sheets</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -16,12 +17,15 @@
             margin: 0;
             padding: 10px;
             background-color: #f4f4f4;
+            overflow-x: hidden;
+            touch-action: manipulation;
         }
 
         #carouselContainer {
             width: 100%;
             max-width: 100%;
             margin: 0 auto;
+            position: relative;
         }
 
         .carousel-wrapper {
@@ -29,12 +33,15 @@
             width: 100%;
             cursor: grab;
             margin: 0 auto;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .carousel-container {
             width: 100%;
             overflow: hidden;
             touch-action: pan-y;
+            position: relative;
         }
 
         .carousel-track {
@@ -43,6 +50,7 @@
             gap: 10px;
             user-select: none;
             padding: 10px;
+            will-change: transform;
         }
 
         .carousel-slide-container {
@@ -50,33 +58,36 @@
             flex-direction: column;
             align-items: center;
             width: auto;
+            touch-action: manipulation;
         }
 
         /* Version mobile */
         .carousel-slide {
-            width: 120px; /* Largeur fixe pour 3 fiches visibles */
+            width: 120px;
             background-color: white;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border-radius: 4px;
             overflow: hidden;
             margin-bottom: 5px;
+            flex: 0 0 auto;
         }
 
         .image-container {
             width: 100%;
-            height: 160px; /* 160px de hauteur sur mobile (ratio 2/3) */
+            height: 160px;
             background-color: #f0f0f0;
             overflow: hidden;
+            position: relative;
         }
 
         /* Version ordinateur */
         @media (min-width: 768px) {
             .carousel-slide {
-                width: 240px; /* 240px de largeur */
+                width: 240px;
             }
 
             .image-container {
-                height: 320px; /* 320px de hauteur (ratio 2/3) */
+                height: 320px;
             }
 
             .carousel-track {
@@ -92,6 +103,7 @@
             object-fit: cover;
             margin: 0;
             padding: 0;
+            pointer-events: none;
         }
 
         .image-error {
@@ -134,48 +146,54 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
             border: none;
             border-radius: 50%;
-            font-size: 16px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10;
             user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .carousel-arrow {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-
-            .carousel-arrow.left {
-                left: 10px;
-            }
-
-            .carousel-arrow.right {
-                right: 10px;
-            }
-        }
-
-        .carousel-arrow.left {
-            left: 5px;
-        }
-
-        .carousel-arrow.right {
-            right: 5px;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            outline: none;
         }
 
         .carousel-arrow:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+        }
+
+        .carousel-arrow.left {
+            left: -5px;
+        }
+
+        .carousel-arrow.right {
+            right: -5px;
+        }
+
+        @media (max-width: 767px) {
+            .carousel-arrow {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+
+            .carousel-arrow.left {
+                left: 0;
+            }
+
+            .carousel-arrow.right {
+                right: 0;
+            }
         }
 
         .error-message, .loading-message {
@@ -229,6 +247,8 @@
             let prevTranslate = 0;
             let startTime = 0;
             let isClick = false;
+            let startX = 0;
+            let isSwiping = false;
 
             // Lien vers ton Google Sheet publié en CSV
             const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRRHwWVpBAQqT4VPnMgkLi6157FEKjYmBJdriNDBMq3mVVM0AvajmvH3O-0yh5L2XIcUTO-86EKQyT/pub?output=csv";
@@ -275,18 +295,16 @@
 
                     for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
-                        if (!line) continue; // Ignorer les lignes vides
+                        if (!line) continue;
 
-                        // Utiliser une expression régulière pour gérer les virgules dans les guillemets
                         const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
                         const row = values.map(value => value.trim().replace(/^"|"$/g, ''));
                         console.log(`Ligne ${i} :`, row);
 
-                        // Vérifier si la ligne contient assez de colonnes
                         if (row.length >= 3) {
-                            const caption = row[0]; // Première colonne (colonne A)
-                            const link = row[1];    // Deuxième colonne (colonne B)
-                            const image = row[2];   // Troisième colonne (colonne C)
+                            const caption = row[0];
+                            const link = row[1];
+                            const image = row[2];
                             if (link && image) {
                                 images.push({ caption, link, image });
                                 console.log(`Ajout de l'image: ${caption} -> ${link} -> ${image}`);
@@ -340,7 +358,6 @@
                     imgElement.alt = image.caption;
                     imgElement.loading = 'lazy';
 
-                    // Gestion des erreurs de chargement des images
                     imgElement.onerror = function() {
                         imageContainer.innerHTML = `
                             <div class="image-error">
@@ -396,6 +413,62 @@
                 });
 
                 // Écouteurs d'événements pour le glissement
+                let touchStartX = 0;
+                let touchEndX = 0;
+
+                carouselWrapper.addEventListener('touchstart', function(e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                    startPos = currentTranslate;
+                    isDragging = true;
+                    carouselWrapper.style.cursor = 'grabbing';
+                    track.style.transition = 'none';
+                    e.preventDefault();
+                }, {passive: false});
+
+                carouselWrapper.addEventListener('touchmove', function(e) {
+                    if (!isDragging) return;
+                    touchEndX = e.changedTouches[0].screenX;
+                    const diff = touchEndX - touchStartX;
+                    currentTranslate = startPos + diff;
+
+                    // Limite le déplacement aux extrémités
+                    if (currentTranslate > 0) {
+                        currentTranslate = 0;
+                    } else if (currentTranslate < maxTranslate) {
+                        currentTranslate = maxTranslate;
+                    }
+
+                    track.style.transform = `translateX(${currentTranslate}px)`;
+                    e.preventDefault();
+                }, {passive: false});
+
+                carouselWrapper.addEventListener('touchend', function(e) {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    prevTranslate = currentTranslate;
+                    carouselWrapper.style.cursor = 'grab';
+                    track.style.transition = 'transform 0.3s ease-out';
+
+                    // Détection du swipe pour les flèches
+                    const diff = touchEndX - touchStartX;
+                    if (diff > 50) { // Swipe vers la droite
+                        if (currentTranslate < 0) {
+                            currentTranslate += slideWidth;
+                            if (currentTranslate > 0) currentTranslate = 0;
+                            track.style.transform = `translateX(${currentTranslate}px)`;
+                        }
+                    } else if (diff < -50) { // Swipe vers la gauche
+                        if (currentTranslate > maxTranslate) {
+                            currentTranslate -= slideWidth;
+                            if (currentTranslate < maxTranslate) currentTranslate = maxTranslate;
+                            track.style.transform = `translateX(${currentTranslate}px)`;
+                        }
+                    }
+
+                    updateArrowStates(maxTranslate);
+                });
+
+                // Écouteurs pour souris
                 carouselWrapper.addEventListener('mousedown', startDrag);
                 document.addEventListener('mousemove', drag);
                 document.addEventListener('mouseup', endDrag);
@@ -403,17 +476,30 @@
                 // Écouteur pour le scroll horizontal avec la molette
                 container.addEventListener('wheel', handleWheel, { passive: false });
 
-                // Touch events pour le glissement
-                carouselWrapper.addEventListener('touchstart', startDrag);
-                document.addEventListener('touchmove', drag);
-                document.addEventListener('touchend', endDrag);
+                // Gestion des clics sur les flèches
+                leftArrow.addEventListener('click', function() {
+                    if (currentTranslate === 0) return;
+                    currentTranslate += slideWidth;
+                    if (currentTranslate > 0) currentTranslate = 0;
+                    track.style.transform = `translateX(${currentTranslate}px)`;
+                    prevTranslate = currentTranslate;
+                    updateArrowStates(maxTranslate);
+                });
+
+                rightArrow.addEventListener('click', function() {
+                    if (currentTranslate === maxTranslate) return;
+                    currentTranslate -= slideWidth;
+                    if (currentTranslate < maxTranslate) currentTranslate = maxTranslate;
+                    track.style.transform = `translateX(${currentTranslate}px)`;
+                    prevTranslate = currentTranslate;
+                    updateArrowStates(maxTranslate);
+                });
 
                 function startDrag(e) {
-                    if (e.type === 'mousedown' && e.button !== 0) return;
+                    if (e.button !== 0) return;
                     isDragging = true;
                     isClick = false;
-                    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    startPos = clientX;
+                    startPos = e.clientX;
                     prevTranslate = currentTranslate;
                     carouselWrapper.style.cursor = 'grabbing';
                     track.style.transition = 'none';
@@ -422,10 +508,8 @@
 
                 function drag(e) {
                     if (!isDragging) return;
-                    const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                    currentTranslate = prevTranslate + clientX - startPos;
+                    currentTranslate = prevTranslate + e.clientX - startPos;
 
-                    // Limite le déplacement aux extrémités
                     if (currentTranslate > 0) {
                         currentTranslate = 0;
                     } else if (currentTranslate < maxTranslate) {
@@ -460,36 +544,18 @@
                     updateArrowStates(maxTranslate);
                 }
 
-                function updateArrowStates(maxTranslate) {
+                function updateArrowStates() {
                     leftArrow.disabled = currentTranslate === 0;
                     rightArrow.disabled = currentTranslate === maxTranslate;
                 }
 
-                leftArrow.addEventListener('click', () => {
-                    if (currentTranslate === 0) return;
-                    currentTranslate += slideWidth;
-                    if (currentTranslate > 0) currentTranslate = 0;
-                    track.style.transform = `translateX(${currentTranslate}px)`;
-                    prevTranslate = currentTranslate;
-                    updateArrowStates(maxTranslate);
-                });
-
-                rightArrow.addEventListener('click', () => {
-                    if (currentTranslate === maxTranslate) return;
-                    currentTranslate -= slideWidth;
-                    if (currentTranslate < maxTranslate) currentTranslate = maxTranslate;
-                    track.style.transform = `translateX(${currentTranslate}px)`;
-                    prevTranslate = currentTranslate;
-                    updateArrowStates(maxTranslate);
-                });
-
                 // Initialise l'état des flèches
-                updateArrowStates(maxTranslate);
+                updateArrowStates();
 
                 // Recalculer les dimensions lors du redimensionnement de la fenêtre
                 window.addEventListener('resize', function() {
                     ({ slideWidth, maxTranslate } = calculateLimits());
-                    updateArrowStates(maxTranslate);
+                    updateArrowStates();
                 });
             });
         });
