@@ -149,9 +149,7 @@
             width: 40px;
             height: 40px;
             background-color: transparent;
-            color: white;
             border: none;
-            border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -164,7 +162,6 @@
             margin: 0;
             border: 0;
             outline: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         .carousel-arrow::after {
@@ -173,24 +170,29 @@
             width: 0;
             height: 0;
             border-style: solid;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
         }
 
         .carousel-arrow.left::after {
             border-width: 10px 15px 10px 0;
-            border-color: transparent rgba(0, 0, 0, 0.7) transparent transparent;
+            border-color: transparent white transparent transparent;
             margin-left: -3px;
         }
 
         .carousel-arrow.right::after {
             border-width: 10px 0 10px 15px;
-            border-color: transparent transparent transparent rgba(0, 0, 0, 0.7);
+            border-color: transparent transparent transparent white;
             margin-right: -3px;
         }
 
         .carousel-arrow:disabled {
             opacity: 0.3;
             cursor: not-allowed;
-            box-shadow: none;
+        }
+
+        .carousel-arrow:disabled::after {
+            filter: none;
+            opacity: 0.3;
         }
 
         .carousel-arrow.left {
@@ -205,11 +207,11 @@
             .carousel-arrow {
                 width: 30px;
                 height: 30px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
 
             .carousel-arrow::after {
                 border-width: 8px 12px 8px 0;
+                filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
             }
 
             .carousel-arrow.left::after {
