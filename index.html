@@ -165,6 +165,27 @@
             margin: 0;
             border: 0;
             outline: none;
+            line-height: 0;
+        }
+
+        .carousel-arrow::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .carousel-arrow.left::after {
+            border-width: 10px 15px 10px 0;
+            border-color: transparent white transparent transparent;
+            margin-left: -3px;
+        }
+
+        .carousel-arrow.right::after {
+            border-width: 10px 0 10px 15px;
+            border-color: transparent transparent transparent white;
+            margin-right: -3px;
         }
 
         .carousel-arrow:disabled {
@@ -184,7 +205,19 @@
             .carousel-arrow {
                 width: 30px;
                 height: 30px;
-                font-size: 16px;
+            }
+
+            .carousel-arrow::after {
+                border-width: 8px 12px 8px 0;
+            }
+
+            .carousel-arrow.left::after {
+                margin-left: -2px;
+            }
+
+            .carousel-arrow.right::after {
+                border-width: 8px 0 8px 12px;
+                margin-right: -2px;
             }
 
             .carousel-arrow.left {
@@ -218,13 +251,13 @@
     <div id="carouselContainer">
         <div class="loading-message" id="loadingMessage">Chargement des données en cours...</div>
         <div class="carousel-wrapper" id="carouselWrapper" style="display: none;">
-            <button class="carousel-arrow left" id="leftArrow" disabled>←</button>
+            <button class="carousel-arrow left" id="leftArrow" disabled></button>
             <div class="carousel-container">
                 <div class="carousel-track" id="carouselTrack">
                     <!-- Les images seront ajoutées dynamiquement ici -->
                 </div>
             </div>
-            <button class="carousel-arrow right" id="rightArrow">→</button>
+            <button class="carousel-arrow right" id="rightArrow"></button>
         </div>
         <div id="errorMessage" class="error-message" style="display: none;">
             Aucune donnée valide trouvée dans le Google Sheet.
@@ -376,7 +409,7 @@
 
                 function calculateLimits() {
                     const slideContainer = document.querySelector('.carousel-slide-container');
-                    const slideWidth = slideContainer ? slideContainer.offsetWidth + (window.innerWidth < 768 ? 10 : 15) : 130;
+                    const slideWidth = slideContainer ? slideContainer.offsetWidth + (window.innerWidth < 767 ? 10 : 15) : 130;
                     const totalSlides = images.length;
                     const containerWidth = container.offsetWidth;
                     const maxTranslate = containerWidth - (totalSlides * slideWidth);
