@@ -162,6 +162,8 @@
             margin: 0;
             border: 0;
             outline: none;
+            opacity: 1;
+            transition: opacity 0.2s ease;
         }
 
         .carousel-arrow::after {
@@ -186,13 +188,8 @@
         }
 
         .carousel-arrow:disabled {
-            opacity: 0.3;
             cursor: not-allowed;
-        }
-
-        .carousel-arrow:disabled::after {
-            filter: none;
-            opacity: 0.3;
+            opacity: 0.5 !important;
         }
 
         .carousel-arrow.left {
