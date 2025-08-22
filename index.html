@@ -165,6 +165,29 @@
             margin: 0;
             border: 0;
             outline: none;
+            line-height: 1;
+        }
+
+        .carousel-arrow::before {
+            display: block;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+        }
+
+        .carousel-arrow.left::before {
+            content: '←';
+        }
+
+        .carousel-arrow.right::before {
+            content: '→';
         }
 
         .carousel-arrow:disabled {
@@ -247,8 +270,6 @@
             let prevTranslate = 0;
             let startTime = 0;
             let isClick = false;
-            let startX = 0;
-            let isSwiping = false;
 
             // Lien vers ton Google Sheet publié en CSV
             const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRRHwWVpBAQqT4VPnMgkLi6157FEKjYmBJdriNDBMq3mVVM0AvajmvH3O-0yh5L2XIcUTO-86EKQyT/pub?output=csv";
@@ -259,7 +280,6 @@
                     console.log("Tentative de récupération des données depuis le Google Sheet...");
                     loadingMessage.style.display = 'block';
 
-                    // Utiliser un proxy CORS pour éviter les problèmes de CORS
                     const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(sheetURL)}`;
                     const response = await fetch(proxyURL);
                     const data = await response.json();
@@ -269,11 +289,9 @@
                         throw new Error("Aucun contenu trouvé dans la réponse.");
                     }
 
-                    // Extraire le contenu CSV de la réponse
                     const csvData = data.contents;
                     console.log("Contenu CSV brut :", csvData);
 
-                    // Vérifier si le contenu est en base64
                     const base64Match = csvData.match(/data:text\/csv;base64,([^"]+)/);
                     let decodedCSV;
                     if (base64Match && base64Match[1]) {
@@ -283,7 +301,6 @@
                     }
                     console.log("Contenu CSV décodé :", decodedCSV);
 
-                    // Analyser le CSV
                     const lines = decodedCSV.split('\n');
                     console.log("Lignes du CSV :", lines);
 
@@ -334,11 +351,9 @@
                     return;
                 }
 
-                // Masquer le message de chargement et afficher le carrousel
                 loadingMessage.style.display = 'none';
                 carouselWrapper.style.display = 'block';
 
-                // Ajoute les images au DOM
                 images.forEach(image => {
                     const slideContainer = document.createElement('div');
                     slideContainer.className = 'carousel-slide-container';
@@ -382,7 +397,6 @@
 
                 console.log(`Nombre d'images à afficher: ${images.length}`);
 
-                // Calcule les limites après l'ajout des images
                 function calculateLimits() {
                     const slideContainer = document.querySelector('.carousel-slide-container');
                     const slideWidth = slideContainer ? slideContainer.offsetWidth + (window.innerWidth < 768 ? 10 : 15) : 130;
@@ -397,7 +411,6 @@
 
                 console.log("Limites calculées :", maxTranslate);
 
-                // Gestion des clics vs drag sur les liens
                 track.querySelectorAll('a').forEach(a => {
                     a.addEventListener('mousedown', (e) => {
                         startTime = Date.now();
@@ -412,7 +425,6 @@
                     });
                 });
 
-                // Écouteurs d'événements pour le glissement
                 let touchStartX = 0;
                 let touchEndX = 0;
 
@@ -431,7 +443,6 @@
                     const diff = touchEndX - touchStartX;
                     currentTranslate = startPos + diff;
 
-                    // Limite le déplacement aux extrémités
                     if (currentTranslate > 0) {
                         currentTranslate = 0;
                     } else if (currentTranslate < maxTranslate) {
@@ -449,15 +460,14 @@
                     carouselWrapper.style.cursor = 'grab';
                     track.style.transition = 'transform 0.3s ease-out';
 
-                    // Détection du swipe pour les flèches
                     const diff = touchEndX - touchStartX;
-                    if (diff > 50) { // Swipe vers la droite
+                    if (diff > 50) {
                         if (currentTranslate < 0) {
                             currentTranslate += slideWidth;
                             if (currentTranslate > 0) currentTranslate = 0;
                             track.style.transform = `translateX(${currentTranslate}px)`;
                         }
-                    } else if (diff < -50) { // Swipe vers la gauche
+                    } else if (diff < -50) {
                         if (currentTranslate > maxTranslate) {
                             currentTranslate -= slideWidth;
                             if (currentTranslate < maxTranslate) currentTranslate = maxTranslate;
@@ -468,15 +478,12 @@
                     updateArrowStates(maxTranslate);
                 });
 
-                // Écouteurs pour souris
                 carouselWrapper.addEventListener('mousedown', startDrag);
                 document.addEventListener('mousemove', drag);
                 document.addEventListener('mouseup', endDrag);
 
-                // Écouteur pour le scroll horizontal avec la molette
                 container.addEventListener('wheel', handleWheel, { passive: false });
 
-                // Gestion des clics sur les flèches
                 leftArrow.addEventListener('click', function() {
                     if (currentTranslate === 0) return;
                     currentTranslate += slideWidth;
@@ -549,10 +556,8 @@
                     rightArrow.disabled = currentTranslate === maxTranslate;
                 }
 
-                // Initialise l'état des flèches
                 updateArrowStates();
 
-                // Recalculer les dimensions lors du redimensionnement de la fenêtre
                 window.addEventListener('resize', function() {
                     ({ slideWidth, maxTranslate } = calculateLimits());
                     updateArrowStates();
